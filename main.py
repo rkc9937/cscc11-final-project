@@ -11,7 +11,8 @@ if __name__ == "__main__":
     #init the dataset
     df = pd.read_csv('./data/mci.csv') 
 
-    create_severity(df)
+    if not os.path.exists('./data/weights/severity_weights.pkl'):
+        create_severity(df)
 
     severity_weights = load_severity_weights()
 
