@@ -9,9 +9,8 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, mean_absolute_percentage_error
 from data_format.format import load_formatted_data
-
 
 def prepare_features(df):
     """
@@ -49,13 +48,21 @@ def evaluate_model(model, X_test, y_test):
     rmse = np.sqrt(mse)
     mae = mean_absolute_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
+    # from sklearn docs
+    # # the value when some element of the y_true is zero is arbitrarily high because
+    # of the division by epsilon
+    # remove 0 from y_true to avoid this issue
+    y_test_non_zero = y_test[y_test != 0]
+    y_pred_non_zero = y_pred[y_test != 0]
+    mape = mean_absolute_percentage_error(y_test_non_zero, y_pred_non_zero) * 100  # Convert to percentage
     
     return {
         'MSE': mse,
         'RMSE': rmse,
         'MAE': mae,
         'R2': r2,
-        'y_pred': y_pred
+        'y_pred': y_pred,
+        'MAPE': mape
     }
 
 
@@ -105,6 +112,7 @@ def main():
     print(f"  R² Score: {train_results['R2']:.4f}")
     print(f"  RMSE: {train_results['RMSE']:.4f}")
     print(f"  MAE: {train_results['MAE']:.4f}")
+    print(f"  MAPE: {train_results['MAPE']:.4f}")
     
     # Test performance
     test_results = evaluate_model(model, X_test, y_test)
@@ -112,6 +120,7 @@ def main():
     print(f"  R² Score: {test_results['R2']:.4f}")
     print(f"  RMSE: {test_results['RMSE']:.4f}")
     print(f"  MAE: {test_results['MAE']:.4f}")
+    print(f"  MAPE: {test_results['MAPE']:.4f}")
     
     # Print coefficients
     print_coefficients(model, X.columns)
