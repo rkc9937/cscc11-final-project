@@ -261,6 +261,10 @@ def format_dataframe(df, weights_path='./data/weights/severity_weights.pkl'):
     result_df = result_df[final_cols]
     
     print("Formatting complete!")
+
+    #convert neighborhood_id to numeric
+    result_df['neighborhood_id'] = pd.to_numeric(result_df['neighborhood_id'], errors='coerce')
+
     return result_df
 
 
