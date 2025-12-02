@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, mean_absolute_percentage_error
 from sklearn.pipeline import Pipeline
 from data_format.format import load_formatted_data
 
@@ -40,17 +40,7 @@ def evaluate_model(model, X_test, y_test):
     rmse = np.sqrt(mse)
     mae = mean_absolute_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
-    
-    # Calculate MAPE (skip zero actuals to avoid division by zero)
-    y_true_arr = np.array(y_test)
-    y_pred_arr = np.array(y_pred)
-    non_zero_mask = y_true_arr != 0
-    if non_zero_mask.sum() < len(y_true_arr):
-        print(f"Warning: {len(y_true_arr) - non_zero_mask.sum()} zero values excluded from MAPE calculation")
-    if non_zero_mask.sum() > 0:
-        mape = np.mean(np.abs((y_true_arr[non_zero_mask] - y_pred_arr[non_zero_mask]) / y_true_arr[non_zero_mask])) * 100
-    else:
-        mape = np.nan
+    mape = mean_absolute_percentage_error(y_test, y_pred) * 100  # Convert to percentage
 
     return {
         'MSE': mse, 
