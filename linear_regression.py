@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, mean_absolute_percentage_error
 
 
 def prepare_features(df):
@@ -37,12 +37,16 @@ def analyze_model_performance(y_true, y_pred, model_name, verbose=True):
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
     mae = mean_absolute_error(y_true, y_pred)
     r2 = r2_score(y_true, y_pred)
+    y_test_non_zero = y_true[y_true != 0]
+    y_pred_non_zero = y_pred[y_true != 0]
+    mape = mean_absolute_percentage_error(y_test_non_zero, y_pred_non_zero) * 100  # Convert to percentage
 
     if verbose:
         print(f"\n{model_name} Performance:")
         print(f"RMSE: {rmse:.4f}")
         print(f"MAE:  {mae:.4f}")
         print(f"r2:   {r2:.4f}")
+        print(f"MAPE: {mape:.2f}%")
 
     return {"rmse": rmse, "mae": mae, "r2": r2, "y_pred": y_pred}
 
@@ -91,8 +95,8 @@ model = train_linear_model(X_train, y_train)
 y_train_pred = model.predict(X_train)
 y_test_pred = model.predict(X_test)
 
-train_metrics = analyze_model_performance(y_train, y_train_pred, "Linear Regression (train)", False)
-test_metrics = analyze_model_performance(y_test, y_test_pred, "Linear Regression (test)", False)
+train_metrics = analyze_model_performance(y_train, y_train_pred, "Linear Regression (train)", True)
+test_metrics = analyze_model_performance(y_test, y_test_pred, "Linear Regression (test)", True)
 
 print_coefficients(model, X.columns)
 
