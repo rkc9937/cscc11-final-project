@@ -40,7 +40,19 @@ def evaluate_model(model, X_test, y_test):
     rmse = np.sqrt(mse)
     mae = mean_absolute_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
-    mape = mean_absolute_percentage_error(y_test, y_pred) * 100  # Convert to percentage
+    
+    # Filter out near-zero values before calculating MAPE
+    y_true_arr = np.array(y_test)
+    y_pred_arr = np.array(y_pred)
+    non_zero_mask = np.abs(y_true_arr) >= 0.01
+    
+    if non_zero_mask.sum() > 0:
+        mape = mean_absolute_percentage_error(
+            y_true_arr[non_zero_mask], 
+            y_pred_arr[non_zero_mask]
+        ) * 100
+    else:
+        mape = np.nan
 
     return {
         'MSE': mse, 
@@ -182,6 +194,46 @@ def main():
     with open("models/ridge_model.pkl", "wb") as f:
         pickle.dump(model, f)
     print("\nSaved models/ridge_model.pkl")
+
+    # Plots
+    y_test_arr = y_test.values
+    y_pred_arr = test_results['y_pred']
+
+    plt.figure(figsize=(6,6))
+    plt.scatter(y_test_arr, y_pred_arr, s=5)
+    plt.xlabel("Actual NSI_next")
+    plt.ylabel("Predicted NSI_next")
+    plt.title("Ridge Regression: Predicted vs Actual")
+    plt.plot([y_test_arr.min(), y_test_arr.max()],
+            [y_test_arr.min(), y_test_arr.max()],
+            linewidth=1)
+    plt.tight_layout()
+    plt.savefig("ridge_pred_vs_actual.png", dpi=300)
+
+    # Plot alpha tuning results
+    plt.figure(figsize=(6,4))
+    plt.semilogx(alpha_df["alpha"], alpha_df["mean_rmse"])
+    plt.xlabel("alpha (log scale)")
+    plt.ylabel("Mean CV RMSE")
+    plt.title("Ridge Regression Hyperparameter Tuning")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("ridge_alpha_tuning.png", dpi=300)
+
+    # Plot Coefficient Magnitude Bar
+    ridge = model.named_steps["ridge"]
+    coefs = ridge.coef_
+    names = X.columns
+
+    sorted_idx = np.argsort(np.abs(coefs))[::-1]
+
+    plt.figure(figsize=(8,4))
+    plt.bar(range(len(coefs)), coefs[sorted_idx])
+    plt.xticks(range(len(coefs)), names[sorted_idx], rotation=90)
+    plt.title("Ridge Regression Coefficient Magnitudes")
+    plt.tight_layout()
+    plt.savefig("ridge_coeffs.png", dpi=300)
+
 
     return model, test_results
 
