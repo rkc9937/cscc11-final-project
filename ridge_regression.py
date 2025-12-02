@@ -40,7 +40,19 @@ def evaluate_model(model, X_test, y_test):
     rmse = np.sqrt(mse)
     mae = mean_absolute_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
-    mape = mean_absolute_percentage_error(y_test, y_pred) * 100  # Convert to percentage
+    
+    # Filter out near-zero values before calculating MAPE
+    y_true_arr = np.array(y_test)
+    y_pred_arr = np.array(y_pred)
+    non_zero_mask = np.abs(y_true_arr) >= 0.01
+    
+    if non_zero_mask.sum() > 0:
+        mape = mean_absolute_percentage_error(
+            y_true_arr[non_zero_mask], 
+            y_pred_arr[non_zero_mask]
+        ) * 100
+    else:
+        mape = np.nan
 
     return {
         'MSE': mse, 
