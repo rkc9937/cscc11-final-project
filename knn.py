@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split, cross_val_score, KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsRegressor
 import numpy as np
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, mean_absolute_percentage_error
 
 def process_data(X,y):
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=42)
@@ -54,13 +54,14 @@ def train_knn_model(X_train, y_train, k_values, cv_folds):
     scatter = plt.scatter(k_values, cv_scores)
     plt.show()
 
-    optimal_k = 10
+    index = np.argmin(cv_scores)
+    optimal_k = k_values[index]
     
     print(f"\nOptimal k: {optimal_k}")
-    print(f"Best CV RMSE: {rmse_scores[3]}")
+    print(f"Best CV RMSE: {cv_scores[index]}")
     
     # Train final model with optimal k
-    final_model = KNeighborsRegressor(10)
+    final_model = KNeighborsRegressor(optimal_k)
     final_model.fit(X_train,y_train)
     
     # Store training results
@@ -76,14 +77,36 @@ def analyze_model_performance(y_true, y_pred, model_name, verbose):
     rmse = np.sqrt(mean_squared_error(y_true,y_pred))
     mae = mean_absolute_error(y_true, y_pred)
     r2 = r2_score(y_true,y_pred)
+    mape = get_mean_absolute_percentage_error(y_true, y_pred)
     
     if verbose:
         print(f"\n{model_name} Performance:")
         print(f"RMSE: {rmse:.4f}")
         print(f"MAE:  {mae:.4f}")  
         print(f"r2:   {r2:.4f}")
+        print(f"MAPE: {mape:.4f}")
     
     return {"rmse": rmse, "mae": mae, "r2": r2}
+
+def get_mean_absolute_percentage_error(y_true, y_pred):
+    """
+    Calculates the Mean Absolute Percentage Error (MAPE).
+    
+    MAPE is defined as: (100 / n) * sum(|(y_true - y_pred) / y_true|)
+    This implementation handles division by zero by ignoring points where y_true is 0.
+    """
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
+    
+    ## Filter out points where y_true is exactly zero to prevent division by zero
+    non_zero_indices = y_true != 0
+    y_true_nz = y_true[non_zero_indices]
+    y_pred_nz = y_pred[non_zero_indices]
+    
+    if len(y_true_nz) == 0:
+        return np.nan # Return NaN if all actual values are zero
+        
+    mape = np.mean(np.abs((y_true_nz - y_pred_nz) / y_true_nz)) * 100
+    return mape
 
 df = load_formatted_data()
 
@@ -132,7 +155,7 @@ plt.show()
 X_train_scaled, X_test_scaled, y_train, y_test = process_data(X, y)
 
 kfold = KFold(n_splits=5, shuffle=True, random_state=42)
-k_values = [1, 3, 5, 10, 15, 20, 30, 45, 65]
+k_values = [1, 3, 5, 10, 15, 20, 25, 30, 45, 65]
 optimal_k, cv_scores, training_results = train_knn_model(X_train_scaled, y_train, k_values, cv_folds=kfold)
 
 final_model = training_results['final_model']
