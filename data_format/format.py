@@ -248,7 +248,8 @@ def format_dataframe(df, weights_path='./data/weights/severity_weights.pkl'):
     result_df = pd.DataFrame(records)
     
     # Reorder columns
-    base_cols = ['neighborhood_id', 'lat_wgs84', 'long_wgs84', 'year', 'month']
+    spatial_cols = ['neighborhood_id', 'lat_wgs84', 'long_wgs84']
+    temporal_cols = ['occ_year', 'occ_month', 'report_year', 'report_month']
     crime_cols = ['count_assault_prev', 'count_bne_prev', 'count_theft_prev', 
                   'count_auto_theft_prev', 'count_robbery_prev']
     weight_cols = ['weighted_score_prev']
@@ -256,7 +257,7 @@ def format_dataframe(df, weights_path='./data/weights/severity_weights.pkl'):
                 'delta_weight', 'weight_3m']
     target_cols = ['NSI_next']
     
-    final_cols = base_cols + crime_cols + weight_cols + lag_cols + target_cols
+    final_cols = spatial_cols + temporal_cols + crime_cols + weight_cols + lag_cols + target_cols
     result_df = result_df[final_cols]
     
     print("Formatting complete!")
