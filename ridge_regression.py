@@ -40,12 +40,24 @@ def evaluate_model(model, X_test, y_test):
     rmse = np.sqrt(mse)
     mae = mean_absolute_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
+    
+    # Calculate MAPE (skip zero actuals to avoid division by zero)
+    y_true_arr = np.array(y_test)
+    y_pred_arr = np.array(y_pred)
+    non_zero_mask = y_true_arr != 0
+    if non_zero_mask.sum() < len(y_true_arr):
+        print(f"Warning: {len(y_true_arr) - non_zero_mask.sum()} zero values excluded from MAPE calculation")
+    if non_zero_mask.sum() > 0:
+        mape = np.mean(np.abs((y_true_arr[non_zero_mask] - y_pred_arr[non_zero_mask]) / y_true_arr[non_zero_mask])) * 100
+    else:
+        mape = np.nan
 
     return {
         'MSE': mse, 
         'RMSE': rmse, 
         'MAE': mae, 
-        'R2': r2, 
+        'R2': r2,
+        'MAPE': mape,
         'y_pred': y_pred
     }
 
@@ -152,12 +164,15 @@ def main():
     print(f"  R^2 Score: {train_results['R2']:.4f}")
     print(f"  RMSE: {train_results['RMSE']:.4f}")
     print(f"  MAE: {train_results['MAE']:.4f}")
+    print(f"  MAPE: {train_results['MAPE']:.2f}%")
 
     test_results = evaluate_model(model, X_test, y_test)
     print(f"\nTest Performance:")
     print(f"  R^2 Score: {test_results['R2']:.4f}")
     print(f"  RMSE: {test_results['RMSE']:.4f}")
     print(f"  MAE: {test_results['MAE']:.4f}")
+    print(f"  MAPE: {test_results['MAPE']:.2f}%")
+
 
     # Print coefficients
     print_coefficients(model, X.columns)
