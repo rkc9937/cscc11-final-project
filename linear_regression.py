@@ -16,18 +16,20 @@ from data_format.format import load_formatted_data
 def prepare_features(df):
     """
     Prepare feature matrix X and target vector y.
-    Drops non-numeric columns and separates target.
+    Converts neighborhood_id to numeric.
     """
-    # Drop non-numeric column (neighborhood_id is categorical)
-    numeric_df = df.drop(columns=['neighborhood_id'])
+    df = df.copy()
+    
+    # Convert neighborhood_id to numeric (they are numeric strings like '002', '013')
+    df['neighborhood_id'] = pd.to_numeric(df['neighborhood_id'], errors='coerce')
     
     # Drop rows with any NaN values
-    numeric_df = numeric_df.dropna()
-    print(f"Rows after dropping NaN: {len(numeric_df)}")
+    df = df.dropna()
+    print(f"Rows after dropping NaN: {len(df)}")
     
     # Separate features and target
-    X = numeric_df.drop(columns=['NSI_next'])
-    y = numeric_df['NSI_next']
+    X = df.drop(columns=['NSI_next'])
+    y = df['NSI_next']
     
     return X, y
 

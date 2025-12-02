@@ -117,6 +117,11 @@ def format_dataframe(df, weights_path='./data/weights/severity_weights.pkl'):
     df = df.dropna(subset=['OCC_YEAR', 'OCC_MONTH', 'LAT_WGS84', 'LONG_WGS84', 'HOOD_158', 'MCI_CATEGORY'])
     print(f"Dropped {initial_len - len(df)} rows with missing values")
     
+    # Drop rows with NSA neighborhood (equivalent to NaN)
+    nsa_count = (df['HOOD_158'] == 'NSA').sum()
+    df = df[df['HOOD_158'] != 'NSA']
+    print(f"Dropped {nsa_count} rows with NSA neighborhood")
+    
     # Convert year columns to int, month strings to int
     df['OCC_YEAR'] = df['OCC_YEAR'].astype(int)
     df['OCC_MONTH'] = df['OCC_MONTH'].map(MONTH_MAP)
