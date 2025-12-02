@@ -15,10 +15,6 @@ RANDOM_STATE = 42
 N_JOBS = -1 
 
 def load_and_preprocess_data(filepath):
-    """
-    Loads data, cleans, and One-Hot Encodes the neighborhood ID for use in the GBR model, 
-    while dropping rows where neighborhood_id is 'NSA'. Keeps report_month as a linear numeric feature.
-    """
     try:
         df = pd.read_pickle(filepath) 
         print(f"Original data shape: {df.shape}")
