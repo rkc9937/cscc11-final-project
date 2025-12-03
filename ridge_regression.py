@@ -1,7 +1,6 @@
-import pickle
-import os
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
@@ -189,11 +188,6 @@ def main():
         'Error': y_test.values[:10] - test_results['y_pred'][:10]
     })
     print(sample_df.to_string(index=False))
-
-    os.makedirs("models", exist_ok=True)
-    with open("models/ridge_model.pkl", "wb") as f:
-        pickle.dump(model, f)
-    print("\nSaved models/ridge_model.pkl")
 
     # Plots
     y_test_arr = y_test.values
