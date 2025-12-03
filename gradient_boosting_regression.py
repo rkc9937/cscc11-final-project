@@ -4,6 +4,8 @@ import math
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_squared_error, r2_score, make_scorer
+import matplotlib.pyplot as plt
+import seaborn as sns 
 
 
 DATA_FILE = 'data/mci_formatted.pkl'
@@ -43,7 +45,7 @@ def perform_grid_search(X_train, y_train):
     print("\n--- Starting Hyperparameter Grid Search (5-Fold CV) ---")
     
     param_grid = {
-        'n_estimators': [50, 100, 200, 1000],
+        'n_estimators': [50, 100, 200],
         'learning_rate': [0.05, 0.1, 0.2],
         'max_depth': [3, 4, 5],        
     }
@@ -65,6 +67,71 @@ def perform_grid_search(X_train, y_train):
     
     return grid_search.best_params_
 
+def plot_model_diagnostics(y_test, y_pred):
+    """
+    Generates diagnostic plots for the regression model performance.
+    """
+    plt.figure(figsize=(12, 5))
+    
+    plt.subplot(1, 2, 1)
+    sns.scatterplot(x=y_test, y=y_pred, alpha=0.6)
+    
+    max_val = max(y_test.max(), y_pred.max())
+    min_val = min(y_test.min(), y_pred.min())
+    plt.plot([min_val, max_val], [min_val, max_val], 
+             '--r', linewidth=2, label='Perfect Prediction')
+
+    plt.title('Actual vs. Predicted NSI_next (Test Set)')
+    plt.xlabel('Actual NSI_next')
+    plt.ylabel('Predicted NSI_next')
+    plt.legend()
+    residuals = y_test - y_pred
+    
+    plt.subplot(1, 2, 2)
+    sns.scatterplot(x=y_pred, y=residuals, alpha=0.6)
+    plt.hlines(y=0, xmin=y_pred.min(), xmax=y_pred.max(), colors='r', linestyles='--')
+    plt.title('Residuals Plot')
+    plt.xlabel('Predicted NSI_next')
+    plt.ylabel('Residuals (Actual - Predicted)')
+    
+    plt.tight_layout()
+    plt.show()
+
+def plot_feature_importance(gbr_model, feature_names, top_n=20):
+    """
+    Generates a horizontal bar chart showing the importance of the top N features.
+    """
+    importances = pd.Series(gbr_model.feature_importances_, index=feature_names)
+    
+    top_features = importances.nlargest(top_n)
+
+    plt.figure(figsize=(10, min(10, len(top_features) * 0.4)))
+    
+    sns.barplot(x=top_features.values, y=top_features.index, palette="viridis")
+    plt.title(f'Top {min(top_n, len(top_features))} Feature Importances (GBR)')
+    plt.xlabel('Feature Importance Score')
+    plt.ylabel('Feature')
+    plt.tight_layout()
+    plt.show()
+def mean_absolute_percentage_error(y_true, y_pred):
+    """
+    Calculates the Mean Absolute Percentage Error (MAPE).
+    
+    MAPE is defined as: (100 / n) * sum(|(y_true - y_pred) / y_true|)
+    This implementation handles division by zero by ignoring points where y_true is 0.
+    """
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
+    
+    # Filter out points where y_true is exactly zero to prevent division by zero
+    non_zero_indices = y_true != 0
+    y_true_nz = y_true[non_zero_indices]
+    y_pred_nz = y_pred[non_zero_indices]
+    
+    if len(y_true_nz) == 0:
+        return np.nan # Return NaN if all actual values are zero
+        
+    mape = np.mean(np.abs((y_true_nz - y_pred_nz) / y_true_nz)) * 100
+    return mape
 
 def train_and_predict_nsi(X, y, data_index, df_cleaned, best_params=None):
     """
@@ -93,11 +160,16 @@ def train_and_predict_nsi(X, y, data_index, df_cleaned, best_params=None):
     mse = mean_squared_error(y_test, y_pred)
     rmse = np.sqrt(mse)
     r2 = r2_score(y_test, y_pred)
-
+    mape = mean_absolute_percentage_error(y_test, y_pred)
     print("\n--- Overall Model Evaluation ---")
     print(f"Mean Squared Error (MSE): {mse:.4f}")
     print(f"Root Mean Squared Error (RMSE): {rmse:.4f}")
     print(f"R-squared (R2 Score): {r2:.4f}")
+    print(f"Mean Absolute Percentage Error (MAPE): {mape:.2f}%") 
+
+    plot_model_diagnostics(y_test, y_pred)
+    plot_feature_importance(gbr, X.columns, top_n=15)
+
     results_df = pd.DataFrame({
         'Actual_NSI_next': y_test,
         'Predicted_NSI_next': y_pred
