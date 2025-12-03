@@ -77,6 +77,23 @@ def plot_actual_vs_predicted(y_true, y_pred):
     plt.show()
 
 
+def plot_feature_coefficients(model, feature_names):
+    coef_df = pd.DataFrame({
+        "Feature": feature_names,
+        "Coefficient": model.coef_
+    }).sort_values("Coefficient", key=abs, ascending=True)
+
+    plt.figure(figsize=(10, 6))
+    colors = ['green' if c > 0 else 'red' for c in coef_df['Coefficient']]
+    plt.barh(coef_df['Feature'], coef_df['Coefficient'], color=colors)
+    plt.xlabel('Coefficient Value')
+    plt.ylabel('Feature')
+    plt.title('Linear Regression Feature Coefficients')
+    plt.axvline(x=0, color='black', linestyle='-', linewidth=0.5)
+    plt.tight_layout()
+    plt.show()
+
+
 df = load_formatted_data()
 
 print(df)
@@ -100,3 +117,4 @@ test_metrics = analyze_model_performance(y_test, y_test_pred, "Linear Regression
 print_coefficients(model, X.columns)
 
 plot_actual_vs_predicted(y_test, y_test_pred)
+plot_feature_coefficients(model, X.columns)
