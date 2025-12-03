@@ -1,4 +1,13 @@
 # CSCC11 Final Project
+
+## Libraries to install
+1. numpy
+2. pandas
+3. scikit-learn
+4. matplotlib
+5. seaborn
+6. tabulate
+
 ## Instructions?
 1. First, download the [MCI dataset](https://drive.google.com/drive/folders/1dtYl4JeOrJ33C3hirnAupLWKlnGeW4dj?usp=sharing).
 2. Place the downloaded mci.csv within the data folder.
