@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split, cross_val_score, KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsRegressor
 import numpy as np
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, mean_absolute_percentage_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 def process_data(X,y):
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=42)
@@ -52,6 +52,8 @@ def train_knn_model(X_train, y_train, k_values, cv_folds):
     
     # Find optimal k
     scatter = plt.scatter(k_values, cv_scores)
+    plt.xlabel("K Value")
+    plt.ylabel("RMSE")
     plt.show()
 
     index = np.argmin(cv_scores)
@@ -108,16 +110,7 @@ def get_mean_absolute_percentage_error(y_true, y_pred):
     mape = np.mean(np.abs((y_true_nz - y_pred_nz) / y_true_nz)) * 100
     return mape
 
-df = load_formatted_data()
-
-print(df)
-
-#X_df = pd.DataFrame(df.data, columns = df.feature_names)
-#y_df = pd.DataFrame(df.target, columns = df.target_names)
-
-#combined_df = pd.concat([X_df, y_df], axis = 1)
-combined_df = df
-#features_df
+combined_df = load_formatted_data()
 
 print(f"Dataset shape: {combined_df.shape}")
 print(f"Feature names: {combined_df.columns}")
@@ -125,8 +118,8 @@ print(f"Target name: {combined_df.index}")
 
 print(combined_df.head())
 
-X = df.drop(columns=["NSI_next"])
-y = df[["NSI_next"]]
+X = combined_df.drop(columns=["NSI_next"])
+y = combined_df[["NSI_next"]]
 
 fig, axes = plt.subplots(7, 3, figsize=(15, 12))
 fig.suptitle('Distribution of Features and Target Variable', fontsize=16)
@@ -142,15 +135,6 @@ for i, col in enumerate(columns):
 
 plt.tight_layout()
 plt.show()
-
-# Create correlation heatmap
-#plt.figure(figsize=(10, 8))
-#correlation_matrix = combined_df.corr()
-#sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', center=0,
-#            square=True, linewidths=0.1)
-#plt.title('Correlation Heatmap')
-#plt.tight_layout()
-#plt.show()
 
 X_train_scaled, X_test_scaled, y_train, y_test = process_data(X, y)
 
