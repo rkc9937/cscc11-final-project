@@ -1,6 +1,6 @@
 # CSCC11 Final Project
 
-## Libraries to install
+## Libraries to install for GBR
 1. numpy
 2. pandas
 3. scikit-learn
